@@ -9,6 +9,7 @@
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NPIXELS, LED_PIN, NEO_GRB + NEO_KHZ800);
 RTCZero rtc;
 int h=0,m=0,s=0;
+int light = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -29,6 +30,11 @@ void loop() {
   hpos[0] = (h*5+m/12)%60; //posizione della lancetta delle ore
   hpos[1] = (hpos[0]-1 < 0) ? 59 : hpos[0]-1;  //led precedente alla posizione delle ore (simil buffer circolare)
   hpos[2] = (hpos[0]+1 > 59) ? 0 : hpos[0]+1; //led successivo alla posizione delle ore
+
+  light = map(analogRead(LDR_PIN), 300, 1000, 5, 8);
+  light = pow(2, light);
+  light = constrain(light, 32, 255);
+  strip.setBrightness(light);
   
   for (int i=0;i<NPIXELS;i++) {
     if (s==i)
@@ -53,8 +59,6 @@ void debugPrint(){
   Serial.print(":");
   print2digits(rtc.getSeconds());
   Serial.println();
-  Serial.println(analogRead(LDR_PIN));
-  //low light 300
 }
 
 void print2digits(int number) {
