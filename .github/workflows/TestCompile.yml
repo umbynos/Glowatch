@@ -11,7 +11,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@master
 
-    - name: Compile all examples
+    - name: Compile
       uses: ArminJo/arduino-test-compile@v2.0.0
       with:
           arduino-board-fqbn: arduino:samd:mkrwifi1010
