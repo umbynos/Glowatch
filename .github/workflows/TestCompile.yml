@@ -1,19 +1,36 @@
 name: TestCompile
+
 on: [push, pull_request]
+
 jobs:
   build:
     name: Test compiling for MKR1010
     runs-on: ubuntu-latest
-    env:
-      REQUIRED_LIBRARIES: Adafruit NeoPixel,ArduinoIoTCloud
-    
-    steps:
-    - name: Checkout
-      uses: actions/checkout@master
 
-    - name: Compile
-      uses: ArminJo/arduino-test-compile@v2.0.0
-      with:
-          arduino-board-fqbn: arduino:samd:mkrwifi1010
-          required-libraries: ${{ env.REQUIRED_LIBRARIES }}
-          sketch-name: Glowatch.ino
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Arduino CLI
+        uses: arduino/setup-arduino-cli@v1.0.0
+
+      - name: Arduino CLI version
+        run: arduino-cli version
+
+      - name: core update-index
+        run: arduino-cli core update-index
+
+      - name: lib update-index
+        run: arduino-cli lib update-index
+
+      - name: list-boards
+        run: arduino-cli board list
+
+      - name: install cores
+        run: arduino-cli core install arduino:samd
+
+      - name: install libraries
+        run: arduino-cli lib install "Adafruit NeoPixel" ArduinoIoTCloud
+
+      - name: compile
+        run: arduino-cli compile --fqbn arduino:samd:mkrwifi1010 Glowatch
