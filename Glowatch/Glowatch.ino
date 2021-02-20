@@ -1,22 +1,29 @@
-#include <RTCZero.h>
 #include <Adafruit_NeoPixel.h>
+#include <ArduinoIoTCloud.h>
+#include <Arduino_ConnectionHandler.h>
+#include <RTCZero.h>
 
+#define SECRET_SSID ""
+#define SECRET_PASS ""
 #define LDR_PIN A0
 #define LED_PIN 5
 #define NPIXELS 60
 #define LED_BRIGHTNESS 64
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NPIXELS, LED_PIN, NEO_GRB + NEO_KHZ800);
-RTCZero rtc;
+WiFiConnectionHandler ArduinoIoTPreferredConnection(SECRET_SSID, SECRET_PASS);
+RTCZero rtc_clock; //will access the same memory address as rtc defined in ArduinoIoTCloud.cpp no need to set that
 int h=0,m=0,s=0;
 int light = 0;
 
 void setup() {
+  setDebugMessageLevel(3);
   Serial.begin(9600);
-  rtc.begin();
-  rtc.setHours((__TIME__[0] - '0') * 10 + __TIME__[1] - '0');
-  rtc.setMinutes((__TIME__[3] - '0') * 10 + __TIME__[4] - '0');
-  rtc.setSeconds((__TIME__[6] - '0') * 10 + __TIME__[7] - '0');
+  rtc_clock.begin();
+  //rtc_clock.setHours((__TIME__[0] - '0') * 10 + __TIME__[1] - '0');
+  //rtc_clock.setMinutes((__TIME__[3] - '0') * 10 + __TIME__[4] - '0');
+  //rtc_clock.setSeconds((__TIME__[6] - '0') * 10 + __TIME__[7] - '0');
+  ArduinoCloud.begin(ArduinoIoTPreferredConnection); // initialize a connection to the Arduino IoT Cloud
   strip.begin();
   rainbowCycle(20);
   strip.setBrightness(LED_BRIGHTNESS);
@@ -24,7 +31,7 @@ void setup() {
 }
 
 void loop() {
-
+  ArduinoCloud.update();
   byte hpos[3]; //array with 3 entry, byte type stores an 8-bit unsigned number, from 0 to 255.
   getTime(); //sets h,m,s variables
   hpos[0] = (h*5+m/12)%60; //posizione della lancetta delle ore
@@ -53,12 +60,14 @@ void loop() {
 }
 
 void debugPrint(){
-  print2digits(rtc.getHours());
+  print2digits(rtc_clock.getHours());
   Serial.print(":");
-  print2digits(rtc.getMinutes());
+  print2digits(rtc_clock.getMinutes());
   Serial.print(":");
-  print2digits(rtc.getSeconds());
+  print2digits(rtc_clock.getSeconds());
   Serial.println();
+  uint32_t rtcEpoch = rtc_clock.getEpoch();
+  Serial.println(rtcEpoch);
 }
 
 void print2digits(int number) {
@@ -69,10 +78,10 @@ void print2digits(int number) {
 }
 
 void getTime() {
-  //h = rtc.getHours() + 1; // ora legale
-  h = (rtc.getHours()>11) ? rtc.getHours()-12 : rtc.getHours(); // ora solare
-  m = rtc.getMinutes();
-  s = rtc.getSeconds();
+  //h = rtc_clock.getHours() + 1; // ora legale
+  h = (rtc_clock.getHours()>11) ? rtc_clock.getHours()-12 : rtc_clock.getHours(); // ora solare
+  m = rtc_clock.getMinutes();
+  s = rtc_clock.getSeconds();
   delay(200);
 }
 
